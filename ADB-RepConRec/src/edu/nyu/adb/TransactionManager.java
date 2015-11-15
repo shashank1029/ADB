@@ -13,6 +13,7 @@ public class TransactionManager {
 	protected TransactionManager(){
 		
 	}
+	//Singleton
 	public static TransactionManager getInstance(){
 		if(instance==null){
 			instance=new TransactionManager();
