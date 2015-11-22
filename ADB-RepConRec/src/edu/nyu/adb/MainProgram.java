@@ -1,11 +1,9 @@
 package edu.nyu.adb;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintStream;
 
 
 public class MainProgram {
@@ -20,6 +18,7 @@ public class MainProgram {
 		}else{
 			init(System.in,System.out);
 		}
+		TransactionManager.getInstance().run();
 	}
 	
 	public static void init(InputStream in, OutputStream out) throws Exception{
