@@ -31,14 +31,25 @@ public class Transaction {
 		ArrayList<Site> sitesContainingDataitem=TransactionManager.getInstance().getSitesContainingDataitem(dataitem);
 		boolean successfullyAcquiredAllLocks=true;
 		for(Site s: sitesContainingDataitem){
-			if(s.isUp){
-				if(!s.lockDataItem(dataitem, l,this)){
+				if(!getLock(s, dataitem,l)){
+					successfullyAcquiredAllLocks=false;
+				}
+		}
+		if(successfullyAcquiredAllLocks){
+			lockOnDataItems.add(dataitem);
+		}
+		return successfullyAcquiredAllLocks;
+	}
+	
+	public boolean getLock(Site siteToReadFrom,String dataitem, lockType l) {
+		boolean successfullyAcquiredAllLocks=true;
+			if(siteToReadFrom.isUp){
+				if(!siteToReadFrom.lockDataItem(dataitem, l,this)){
 					successfullyAcquiredAllLocks=false;
 				}else{
-					sitesAccessed.add(s);
+					sitesAccessed.add(siteToReadFrom);
 				}
 			}
-		}
 		if(successfullyAcquiredAllLocks){
 			lockOnDataItems.add(dataitem);
 		}

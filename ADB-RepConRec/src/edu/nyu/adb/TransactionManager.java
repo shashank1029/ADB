@@ -91,7 +91,7 @@ public class TransactionManager {
 					anyTransactionsWaiting=true;
 					return false;
 				}else
-					System.out.println("Value of "+dataItem +": "+val);
+					System.out.println("Transaction "+t.transactionName+" Value of "+dataItem +": "+val);
 				
 			}
 			return true;
@@ -141,7 +141,7 @@ public class TransactionManager {
 		if(t.readonlyTransaction){
 			return availableSite.readOnlyDataItem(dataItem, t.transactionStartTimestamp);
 		}else{
-			if(t.getLock(dataItem, lockType.READ_LOCK)){
+			if(t.getLock(availableSite,dataItem, lockType.READ_LOCK)){
 				return availableSite.readDataItem(dataItem);
 			}else{
 				t.isWaiting=true;
