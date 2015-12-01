@@ -174,25 +174,14 @@ public class TransactionManager {
 	}
 	private void endTransaction(Transaction t) {
 		if(t.isRunning){
-		//1. check if all the sites have been up since it accessed the dataitems
-		boolean allSitesUp=true;
-		/* for(Site s: t.sitesAccessed){
-			if(s.isUp && s.timestampSinceItWasUp <= t.transactionStartTimestamp){
-				
+			if(t.isWaiting){ //Abort Transaction if not all sites have been up since it accessed dataitems
+				t.abort("Transaction "+t.transactionName+" has some unfinished operation");
+				//System.out.println("Aborting transaction "+t.transactionName);
 			}else{
-				allSitesUp=false;
+				t.commit();
+				//System.out.println("Commiting transaction "+t.transactionName);
 			}
-		}*/
-		if(!allSitesUp){ //Abort Transaction if not all sites have been up since it accessed dataitems
-			t.abort("");
-			//System.out.println("Aborting transaction "+t.transactionName);
-		}else{
-			t.commit();
-			//System.out.println("Commiting transaction "+t.transactionName);
 		}
-		
-		}
-		
 	}
 	
 	public ArrayList<Site> getSitesContainingDataitem(String dataitem) {
