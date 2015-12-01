@@ -11,13 +11,16 @@ public class MainProgram {
 	public static void main(String[] args) throws Exception{
 		if(args.length > 0){
 			if(args.length == 1){
-				init(new FileInputStream(args[0]),System.out);
+				init(new FileInputStream(args[0]),System.out);//Input file supplied but no output file
 			}else{
+				//Input file and output file supplied 
 				init(new FileInputStream(args[0]),new FileOutputStream(args[1]));
 			}
 		}else{
+			//No arguments given
 			init(System.in,System.out);
 		}
+		//Start transaction manager
 		TransactionManager.getInstance().run();
 	}
 	
