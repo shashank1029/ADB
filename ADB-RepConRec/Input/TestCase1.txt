@@ -1,0 +1,10 @@
+// Test 1.
+// T2 should abort, T1 should not, because of wait-die
+// Younger T2 aborts.
+
+begin(T1)
+begin(T2)
+W(T1,x1,11); W(T2,x2,22)
+W(T1,x2,12); W(T2,x1,21)
+end(T1)
+dump()

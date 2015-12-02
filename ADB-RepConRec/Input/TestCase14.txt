@@ -1,0 +1,7 @@
+begin(T1)
+fail(1)
+W(T1,x2,5)
+recover(1)
+R(T1,x2)
+end(T1)
+dump()
