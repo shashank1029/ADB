@@ -2,7 +2,6 @@ package edu.nyu.adb;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 
 import edu.nyu.adb.Lock.lockType;
@@ -12,9 +11,10 @@ public class Site {
 	public int id;
 	public boolean isUp;
 	//public final HashMap<String, DataItem> dataItems;
-	public final HashMap<String, ArrayList<DataItem>> dataItems;
+	public final HashMap<String, DataItem> dataItems;
 	public final HashMap<String, DataItem> dataItemsBufferStorage;
 	public final HashMap<String,HashMap<lockType, ArrayList<Transaction>>> lockTable;
+	public final ArrayList<DataItem> availableDataItemsToRead=null;
 	public int timestampAtWhichSiteFailed;
 	public int timestampSinceItWasUp;
 	
@@ -43,6 +43,13 @@ public class Site {
 	public void recoverSite(int timestamp){
 		isUp=true;
 		timestampSinceItWasUp=timestamp;
+		for(String x:dataItems.keySet()){
+			if(dataItems.get(x).isReplicated){
+				dataItems.get(x).availablForRead=false;
+			}else{
+				dataItems.get(x).availablForRead=true;
+			}
+		}
 	}
 	
 	public boolean lockDataItem(String dataItem, lockType newlt, Transaction t){
@@ -103,11 +110,11 @@ public class Site {
 		return false;
 	}
 	
-	public int readOnlyDataItem(String dataItem, int timestamp){
-		ArrayList<DataItem> diList=dataItems.get(dataItem);
-		 Collections.sort(dataItems.get(dataItem));
-		 int val=0;
-		for(DataItem di:diList){
+	public Integer readOnlyDataItem(String dataItem, int timestamp){
+		ArrayList<Value> diList=dataItems.get(dataItem).valueList;
+		Collections.sort(dataItems.get(dataItem).valueList);
+		Integer val=null;
+		for(Value di:diList){
 			if(di.timestamp < timestamp){
 				val=di.value;
 				break;
@@ -118,18 +125,22 @@ public class Site {
 	
 	public Integer readDataItem(String dataItem){
 		if(dataItemsBufferStorage.containsKey(dataItem)){
-			return dataItemsBufferStorage.get(dataItem).value;
+			return dataItemsBufferStorage.get(dataItem).valueList.get(0).value;
 		}else {
-			Collections.sort(dataItems.get(dataItem));
-			return dataItems.get(dataItem).get(0).value;
+			Collections.sort(dataItems.get(dataItem).valueList);
+			return dataItems.get(dataItem).valueList.get(0).value;
 		}
+		
 	}
 	
 	public void writeDataItem(String dataItem, int newData, int timestamp){
 		DataItem di=new DataItem();
 		di.dataIdentifier=dataItem;
-		di.timestamp=timestamp;
-		di.value=newData;
+		di.availablForRead=true;
+		Value v=new Value();
+		v.timestamp=timestamp;
+		v.value=newData;
+		di.valueList.add(v);
 		dataItemsBufferStorage.put(dataItem,di);
 	}
 

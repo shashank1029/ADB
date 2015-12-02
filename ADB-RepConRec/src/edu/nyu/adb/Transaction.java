@@ -36,7 +36,8 @@ public class Transaction {
 				}
 		}
 		if(successfullyAcquiredAllLocks){
-			lockOnDataItems.add(dataitem);
+			if(!lockOnDataItems.contains(dataitem))
+				lockOnDataItems.add(dataitem);
 		}
 		return successfullyAcquiredAllLocks;
 	}
@@ -47,11 +48,13 @@ public class Transaction {
 				if(!siteToReadFrom.lockDataItem(dataitem, l,this)){
 					successfullyAcquiredAllLocks=false;
 				}else{
-					sitesAccessed.add(siteToReadFrom);
+					if(!sitesAccessed.contains(siteToReadFrom))
+						sitesAccessed.add(siteToReadFrom);
 				}
 			}
 		if(successfullyAcquiredAllLocks){
-			lockOnDataItems.add(dataitem);
+			if(!lockOnDataItems.contains(dataitem))
+				lockOnDataItems.add(dataitem);
 		}
 		return successfullyAcquiredAllLocks;
 	}
@@ -79,9 +82,11 @@ public class Transaction {
 	public void commit() {
 		for(String dataItem:lockOnDataItems){
 			for(Site s: sitesAccessed){
-				ArrayList<DataItem> dataItemList=s.dataItems.get(dataItem);
-				if(!s.dataItemsBufferStorage.isEmpty()&& dataItemList!=null){
-					dataItemList.add(s.dataItemsBufferStorage.get(dataItem));
+				if(!s.dataItemsBufferStorage.isEmpty()&& s.dataItems.containsKey(dataItem) && s.dataItemsBufferStorage.containsKey(dataItem)){
+					DataItem dItem=s.dataItems.get(dataItem);
+					ArrayList<Value> dataItemValueList=dItem.valueList;
+					dItem.availablForRead=s.dataItemsBufferStorage.get(dataItem).availablForRead;
+					dataItemValueList.addAll(s.dataItemsBufferStorage.get(dataItem).valueList);
 					s.dataItemsBufferStorage.remove(dataItem);
 				}
 			}

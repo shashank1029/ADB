@@ -12,21 +12,25 @@ public class SiteManager {
 			for(int j=1;j<=20;j++){
 				if(j%2==0){
 					DataItem dt=new DataItem();
-					dt.timestamp=0;
-					dt.value=100+j;
+					Value v=new Value();
+					v.timestamp=0;
+					v.value=100+j;
+					dt.isReplicated=true;
+					dt.availablForRead=true;
 					dt.dataIdentifier="x"+j;
-					ArrayList<DataItem> x=new ArrayList<>();
-					x.add(dt);
-					s.dataItems.put(dt.dataIdentifier,x);
+					dt.valueList.add(v);
+					s.dataItems.put(dt.dataIdentifier,dt);
 				}else{
 					if(i==1+(j%10)){
 						DataItem dt=new DataItem();
-						dt.timestamp=0;
-						dt.value=100+j;
+						Value v=new Value();
+						v.timestamp=0;
+						v.value=100+j;
 						dt.dataIdentifier="x"+j;
-						ArrayList<DataItem> x=new ArrayList<>();
-						x.add(dt);
-						s.dataItems.put(dt.dataIdentifier,x);
+						dt.isReplicated=false;
+						dt.availablForRead=true;
+						dt.valueList.add(v);
+						s.dataItems.put(dt.dataIdentifier,dt);
 					}
 				}
 			}

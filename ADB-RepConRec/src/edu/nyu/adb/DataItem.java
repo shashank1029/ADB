@@ -1,20 +1,16 @@
 package edu.nyu.adb;
 
-public class DataItem implements Comparable<DataItem> {
+import java.util.ArrayList;
 
-	public int value;
-	public int timestamp;
+public class DataItem  {
+
 	public String dataIdentifier;
-	@Override
-	public int compareTo(DataItem arg0) {
-		if(arg0.timestamp < timestamp)
-			return -1;
-		else if (arg0.timestamp == timestamp)
-			return 0;
-		else return 1;
+	public boolean isReplicated;
+	public boolean availablForRead;
+	public ArrayList<Value> valueList;
+	
+	public DataItem(){
+		valueList=new ArrayList<>();
 	}
 	
-	public String toString(){
-		return value+"";
-	}
 }
