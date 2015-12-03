@@ -102,9 +102,10 @@ public class TransactionManager {
 					anyTransactionsWaiting=true;
 					return false;
 				}else
-					System.out.println("Transaction "+t.transactionName+" Value of "+dataItem +": "+val);
+					bw.write("Transaction "+t.transactionName+" Value of "+dataItem +": "+val+"\n");
 				
 			}
+			bw.flush();
 			return true;
 		}else if(operation.startsWith("W(")){
 			String transactionName=operation.substring(operation.indexOf("(")+1, operation.indexOf(","));
@@ -127,6 +128,7 @@ public class TransactionManager {
 				int siteId=Integer.parseInt(operation.substring(operation.indexOf("(")+1, operation.indexOf(")")));
 				dump(siteId);
 			}
+			bw.flush();
 			return true;
 		}else if(operation.startsWith("end(")){
 			String transactionName=operation.substring(operation.indexOf("(")+1, operation.indexOf(")"));
@@ -206,7 +208,7 @@ public class TransactionManager {
 				t.abort("Transaction "+t.transactionName+" has some unfinished operation");
 				//System.out.println("Aborting transaction "+t.transactionName);
 			}else{
-				t.commit();
+				t.commit(currentTimeStamp);
 				//System.out.println("Commiting transaction "+t.transactionName);
 			}
 		}

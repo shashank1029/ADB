@@ -79,13 +79,16 @@ public class Transaction {
 		}
 	}
 
-	public void commit() {
+	public void commit(int currentTtimestamp) {
 		for(String dataItem:lockOnDataItems){
 			for(Site s: sitesAccessed){
 				if(!s.dataItemsBufferStorage.isEmpty()&& s.dataItems.containsKey(dataItem) && s.dataItemsBufferStorage.containsKey(dataItem)){
 					DataItem dItem=s.dataItems.get(dataItem);
 					ArrayList<Value> dataItemValueList=dItem.valueList;
 					dItem.availablForRead=s.dataItemsBufferStorage.get(dataItem).availablForRead;
+					for(Value v:s.dataItemsBufferStorage.get(dataItem).valueList){
+						v.timestamp=currentTtimestamp;
+					}
 					dataItemValueList.addAll(s.dataItemsBufferStorage.get(dataItem).valueList);
 					s.dataItemsBufferStorage.remove(dataItem);
 				}

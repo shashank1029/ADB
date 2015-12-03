@@ -138,7 +138,6 @@ public class Site {
 		di.dataIdentifier=dataItem;
 		di.availablForRead=true;
 		Value v=new Value();
-		v.timestamp=timestamp;
 		v.value=newData;
 		di.valueList.add(v);
 		dataItemsBufferStorage.put(dataItem,di);
