@@ -1,0 +1,7 @@
+begin(T1)
+begin(T2)
+W(T1,x1,11); W(T2,x2,22)
+end(T1)
+W(T2,x1,21)
+end(T2)
+dump()

@@ -1,0 +1,7 @@
+\\--- should print 102 as commit and RO begin happened simultaneously (not in succession) 
+\\and RO only reads values that are committed before it began
+begin(T1)
+W(T1,x2,10)
+end(T1); beginRO(T2)
+R(T2,x2) 
+end(T2)
