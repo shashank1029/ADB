@@ -20,17 +20,25 @@ public class MainProgram {
 			//No arguments given
 			init(System.in,System.out);
 		}
+		
 		//Start transaction manager
-		TransactionManager.getInstance().run();
+		try {
+			TransactionManager.getInstance().run();
+		} catch (Exception e) {
+			//e.printStackTrace();
+			System.err.println("Error in processing Transaction:  "+  e);
+		}
 	}
 	
 	public static void init(InputStream in, OutputStream out) throws Exception{
-		try{
+		try
+		{	//Start Transaction manager
 			TransactionManager.init(in,out);
 		}catch(Exception e){
 			throw new Exception("Initialization of the Transaction manager failed");
 		}
-		try{
+		try
+		{	//Start Site Manager
 			SiteManager.init();
 		}catch(Exception e){
 			throw new Exception("Initialization of the Site Manager failed");
