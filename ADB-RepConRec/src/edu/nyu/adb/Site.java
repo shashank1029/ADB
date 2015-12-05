@@ -23,8 +23,12 @@ public class Site {
 	
 	/**
 	 * Site  - public constructor
+<<<<<<< HEAD
 	 * This constructor initializes the Site fields
 	 * @param idNumber : identifier to uniquely identify the Site
+=======
+	 * @param idNumber
+>>>>>>> refs/remotes/choose_remote_name/master
 	 */
 	public Site(int idNumber){
 		id=idNumber;
@@ -36,8 +40,13 @@ public class Site {
 	}
 	
 	/**
+<<<<<<< HEAD
 	 * Method failSite is used Simulate a site failure.
 	 * @param timestamp : timestamp at which the site failed
+=======
+	 * Simulate a site failure
+	 * @param timestamp
+>>>>>>> refs/remotes/choose_remote_name/master
 	 */
 	public void failSite(int timestamp){
 		isUp=false; //Set the indicator of whether the site is up to false
@@ -54,8 +63,13 @@ public class Site {
 	}
 	
 	/**
+<<<<<<< HEAD
 	 * Method recoverSite is used Simulate recovery of a site
 	 * @param timestamp : timestamp at which the site recovers
+=======
+	 * Simulate recovery of a site
+	 * @param timestamp
+>>>>>>> refs/remotes/choose_remote_name/master
 	 */
 	public void recoverSite(int timestamp){
 		isUp=true; //Set the indicator to true meaning that the site now is up
@@ -74,12 +88,20 @@ public class Site {
 	}
 	
 	/**
+<<<<<<< HEAD
 	 * Lock data item across this site
 	 * @param dataItem
 	 * @param newlt :type of the lock type
 	 * @param t
 	 * @return 	: true if it was successful to gain lock on that dataitem
 	 * 			: false otherwise
+=======
+	 * Lock data item across all sites
+	 * @param dataItem
+	 * @param newlt
+	 * @param t
+	 * @return
+>>>>>>> refs/remotes/choose_remote_name/master
 	 */
 	public boolean lockDataItem(String dataItem, lockType newlt, Transaction t){
 		if(isUp){
@@ -152,11 +174,18 @@ public class Site {
 	}
 	
 	/**
+<<<<<<< HEAD
 	 * Method readOnlyDataItem is to simulate the multi read consistency 
 	 * The data item has a list of values so compare the transaction timestamp with the timestamp of commit time of the data item
 	 * @param dataItem : data item to be read
 	 * @param timestamp : timestamp of start of the trasanction
 	 * @return value of committed data item whose timestamp is less than the timestamp of the read only transaction  
+=======
+	 * 
+	 * @param dataItem
+	 * @param timestamp
+	 * @return value of data item from previous version 
+>>>>>>> refs/remotes/choose_remote_name/master
 	 */
 	public Integer readOnlyDataItem(String dataItem, int timestamp){
 		ArrayList<Value> diList=dataItems.get(dataItem).valueList; //Get all the values of the dataitem to be read
@@ -174,8 +203,13 @@ public class Site {
 	}
 	
 	/**
+<<<<<<< HEAD
 	 * Method readDataItem is used to simulate the read operation on the site for Read-Write Transactions
 	 * @param dataItem : dataitem whose value the transaction wants to read
+=======
+	 * 
+	 * @param dataItem
+>>>>>>> refs/remotes/choose_remote_name/master
 	 * @return value of data item
 	 */
 	public Integer readDataItem(String dataItem){
@@ -190,11 +224,18 @@ public class Site {
 	}
 	
 	/**
+<<<<<<< HEAD
 	 * Method: writeDataItem is used to write data item to site
 	 * This method will be called only if was able to get the lock on this site
 	 * @param dataItem : data item which the transaction intends to write
 	 * @param newData : New value of the data item
 	 * @param timestamp : timestamp of the time when it is written
+=======
+	 * Write data item to site
+	 * @param dataItem
+	 * @param newData
+	 * @param timestamp
+>>>>>>> refs/remotes/choose_remote_name/master
 	 */
 	public void writeDataItem(String dataItem, int newData, int timestamp){
 		dataItemsBufferStorage.put(dataItem,newData);

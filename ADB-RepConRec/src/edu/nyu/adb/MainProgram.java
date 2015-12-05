@@ -20,8 +20,14 @@ public class MainProgram {
 			//No arguments given
 			init(System.in,System.out);
 		}
+		
 		//Start transaction manager
-		TransactionManager.getInstance().run();
+		try {
+			TransactionManager.getInstance().run();
+		} catch (Exception e) {
+			//e.printStackTrace();
+			System.err.println("Error in processing Transaction:  "+  e);
+		}
 	}
 	
 	/**
@@ -31,15 +37,25 @@ public class MainProgram {
 	 * @throws Exception : if the initialization of Transaction manager and Site manager fails then an exception is thrown
 	 */
 	public static void init(InputStream in, OutputStream out) throws Exception{
+<<<<<<< HEAD
 		try{
 			//Initialize the transaction manager
+=======
+		try
+		{	//Start Transaction manager
+>>>>>>> refs/remotes/choose_remote_name/master
 			TransactionManager.init(in,out);
 		}catch(Exception e){
 			//If initialization of transaction manager fails then throw an appropriate Exception
 			throw new Exception("Initialization of the Transaction manager failed");
 		}
+<<<<<<< HEAD
 		try{
 			//Initialize site manager that initializes the sites with appropriate variables and initial values. 
+=======
+		try
+		{	//Start Site Manager
+>>>>>>> refs/remotes/choose_remote_name/master
 			SiteManager.init();
 		}catch(Exception e){
 			//If initialization of site manager fails then throw an appropriate Exception
