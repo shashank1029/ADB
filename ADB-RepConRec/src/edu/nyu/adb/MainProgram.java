@@ -26,13 +26,17 @@ public class MainProgram {
 	
 	public static void init(InputStream in, OutputStream out) throws Exception{
 		try{
+			//Initialize the transaction manager
 			TransactionManager.init(in,out);
 		}catch(Exception e){
+			//If initialization of transaction manager fails then throw an appropriate Exception
 			throw new Exception("Initialization of the Transaction manager failed");
 		}
 		try{
+			//Initialize site manager that initializes the sites with appropriate variables and initial values. 
 			SiteManager.init();
 		}catch(Exception e){
+			//If initialization of site manager fails then throw an appropriate Exception
 			throw new Exception("Initialization of the Site Manager failed");
 		}
 	}
