@@ -14,10 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Queue;
-<<<<<<< HEAD
 import java.util.Set;
-=======
->>>>>>> refs/remotes/choose_remote_name/master
 
 import edu.nyu.adb.Lock.lockType;
 
@@ -347,7 +344,6 @@ public class TransactionManager {
 		bw.flush();
 	}
 	
-<<<<<<< HEAD
 	private ArrayList<String> sortKeys(Set<String> keySet) {
 		ArrayList<Integer> keys=new ArrayList<>();
 		for(String k:keySet){
@@ -362,8 +358,6 @@ public class TransactionManager {
 	}
 
 
-=======
->>>>>>> refs/remotes/choose_remote_name/master
 	/**
 	 * Show value of a data item on all sites 
 	 * @param dataItem

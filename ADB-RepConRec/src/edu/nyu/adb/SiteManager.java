@@ -28,11 +28,7 @@ public class SiteManager {
 					s.dataItems.put(dt.dataIdentifier,dt); //Adding the initial values to the secondary storage
 				}else{
 					//Add odd data items to one site each 
-<<<<<<< HEAD
 					if(i==1+(j%10)){ //Odd variables
-=======
-					if(i==1+(j%10)){
->>>>>>> refs/remotes/choose_remote_name/master
 						DataItem dt=new DataItem();
 						Value v=new Value();
 						v.timestamp=0; 

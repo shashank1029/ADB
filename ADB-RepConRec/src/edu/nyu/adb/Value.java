@@ -11,12 +11,8 @@ public class Value implements Comparable<Value>{
 	public int timestamp; //Maintains the timestamp when the value was committed
 	
 	/**
-<<<<<<< HEAD
 	 * Method: compareTo Compares Value object based on timestamp
 	 * In order to sort a list of values, the value object should be comparable to another value object.
-=======
-	 * Compare based on timestamp
->>>>>>> refs/remotes/choose_remote_name/master
 	 */
 	@Override
 	public int compareTo(Value arg0) {
