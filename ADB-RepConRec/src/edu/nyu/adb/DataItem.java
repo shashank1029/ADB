@@ -9,6 +9,9 @@ public class DataItem  {
 	public boolean availablForRead;
 	public ArrayList<Value> valueList;
 	
+	/**
+	 * Data Item Constructor
+	 */
 	public DataItem(){
 		valueList=new ArrayList<>();
 	}
