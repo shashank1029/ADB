@@ -5,6 +5,9 @@ public class Value implements Comparable<Value>{
 	public int value;
 	public int timestamp;
 	
+	/**
+	 * Compare based on timestamp
+	 */
 	@Override
 	public int compareTo(Value arg0) {
 		if(arg0.timestamp < timestamp)
