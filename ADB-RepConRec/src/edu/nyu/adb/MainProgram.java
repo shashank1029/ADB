@@ -24,6 +24,12 @@ public class MainProgram {
 		TransactionManager.getInstance().run();
 	}
 	
+	/**
+	 * Method init is used to initialize TransactionManager and SiteManager
+	 * @param in : InputStream either default i.e. Standard input or from a file
+	 * @param out : OutputStream 
+	 * @throws Exception : if the initialization of Transaction manager and Site manager fails then an exception is thrown
+	 */
 	public static void init(InputStream in, OutputStream out) throws Exception{
 		try{
 			//Initialize the transaction manager

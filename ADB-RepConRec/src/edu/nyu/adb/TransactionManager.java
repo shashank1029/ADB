@@ -14,8 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Queue;
-import java.util.SortedMap;
-import java.util.SortedSet;
+import java.util.Set;
 
 import edu.nyu.adb.Lock.lockType;
 
@@ -28,6 +27,12 @@ public class TransactionManager {
 	private static boolean anyTransactionsWaiting=false;
 	private static HashMap<String,Transaction> transactionMap;
 	private int currentTimeStamp=0;
+	
+	/**
+	 * Initializes Transaction manager
+	 * @param in
+	 * @param out
+	 */
 	public static void init(InputStream in, OutputStream out) {
 		 BufferedInputStream bi=new BufferedInputStream(in);
 		 br=new BufferedReader(new InputStreamReader(bi));
@@ -37,10 +42,12 @@ public class TransactionManager {
 		 transactionMap=new HashMap<>();
 		 transactionWaitingList=new ArrayDeque<>();
 	}
-	protected TransactionManager(){
-		
-	}
-	//Singleton
+	
+	
+	/**
+	 * Singleton
+	 * @return 
+	 */
 	public static TransactionManager getInstance(){
 		if(instance==null){
 			instance=new TransactionManager();
@@ -48,14 +55,20 @@ public class TransactionManager {
 		return instance;
 	}
 	
+	/**
+	 * Read input commands and execute transactions
+	 * @throws Exception
+	 */
 	public void run() throws Exception{
 		String line=null;
+		//Read and execute input operations
 		while((line=br.readLine())!=null){
 			String[] operations=line.split(";");
 			for(int i=0;i< operations.length;i++){
 				operations[i]=operations[i].trim();
 				doOperation(operations[i]);
 			}
+			//Check for transactions waiting to be executed
 			if(anyTransactionsWaiting){
 				Queue<Transaction> tempQueue=new ArrayDeque<>();
 				while(!transactionWaitingList.isEmpty()){
@@ -76,48 +89,64 @@ public class TransactionManager {
 		bw.flush();
 	}
 	
+	/**
+	 * Execute transactions
+	 * @param operation
+	 * @return true- if operation was successfully executed, otherwise false
+	 * @throws Exception
+	 */
 	private boolean doOperation(String operation) throws Exception {
+		//Start Read-only transaction
 		if(operation.startsWith("beginRO")){
-			String transactionName=operation.substring(operation.indexOf("(")+1, operation.indexOf(")"));
-			Transaction t=new Transaction(transactionName,currentTimeStamp);
+			String transactionName=operation.substring(operation.indexOf("(")+1, operation.indexOf(")"));	//extract transaction name
+			Transaction t=new Transaction(transactionName,currentTimeStamp);		
 			t.readonlyTransaction=true;
 			transactionMap.put(transactionName, t);
 			transactionList.add(t);
 			return true;
-		}else if(operation.startsWith("begin")){
+		}
+		//Start transaction
+		else if(operation.startsWith("begin")){
 			String transactionName=operation.substring(operation.indexOf("(")+1, operation.indexOf(")"));
 			Transaction t=new Transaction(transactionName,currentTimeStamp);
 			transactionMap.put(transactionName, t);
 			transactionList.add(t);
 			return true;
-		}else if(operation.startsWith("R(")){
+		}
+		//Execute Read operation
+		else if(operation.startsWith("R(")){
 			String transactionName=operation.substring(operation.indexOf("(")+1, operation.indexOf(","));
 			Transaction t=transactionMap.get(transactionName);
 			if(t.isRunning){
 				String dataItem=operation.substring(operation.indexOf(",")+1, operation.indexOf(")"));
 				t.operationsList.add(operation);
 				Integer val=readDataItem(t,dataItem);
+				//if data item which is read null; put operation in waiting for transaction
 				if(val==null){
 					t.operationWaiting=operation;
 					anyTransactionsWaiting=true;
 					return false;
 				}else
-					bw.write("Transaction "+t.transactionName+" Value of "+dataItem +": "+val+"\n");
-				
+					//If data item has a value, display read value
+					bw.write("\nTransaction "+t.transactionName+" Value of "+dataItem +": "+val+"\n");
 			}
 			bw.flush();
 			return true;
-		}else if(operation.startsWith("W(")){
+		}
+		//Execute write operation 
+		else if(operation.startsWith("W(")){
 			String transactionName=operation.substring(operation.indexOf("(")+1, operation.indexOf(","));
 			Transaction t=transactionMap.get(transactionName);
 			if(t.isRunning){
 				String dataItem=operation.substring(operation.indexOf(",")+1, operation.lastIndexOf(","));
 				int value=Integer.parseInt(operation.substring(operation.lastIndexOf(",")+1, operation.indexOf(")")));
 				writeToAllSites(t,dataItem,value,operation);
+				//TODO:Check if this should be within t.isrunning condition
 				if(t.isWaiting)
 					return false;
 			}
 			return true;
+		//Execute Dump data operation
 		}else if(operation.startsWith("dump")){
 			if(operation.equalsIgnoreCase("dump()")){
 				dump();
@@ -130,24 +159,35 @@ public class TransactionManager {
 			}
 			bw.flush();
 			return true;
+		//End a transaction
 		}else if(operation.startsWith("end(")){
 			String transactionName=operation.substring(operation.indexOf("(")+1, operation.indexOf(")"));
 			Transaction t=transactionMap.get(transactionName);
 			endTransaction(t);
 			return true;
+		//Shutdown a site  
 		}else if(operation.startsWith("fail(")){
 			String siteName=operation.substring(operation.indexOf("(")+1, operation.indexOf(")"));
 			SiteManager.siteList.get(Integer.parseInt(siteName)-1).failSite(currentTimeStamp);
 			return true;
+		//Recover a site
 		}else if(operation.startsWith("recover(")){
 			String siteName=operation.substring(operation.indexOf("(")+1, operation.indexOf(")"));
 			SiteManager.siteList.get(Integer.parseInt(siteName)-1).recoverSite(currentTimeStamp);
 			return true;
+		//Omit comments  
 		}else if(operation.startsWith("\\")||operation.isEmpty()){
 			//Do nothing
 		}
 		return false;
 	}
+	
+	/**
+	 * Get value of data item 
+	 * @param t
+	 * @param dataItem
+	 * @return Value of data item 
+	 */
 	private Integer readDataItem(Transaction t, String dataItem) {
 		Site availableSite=getAvailableSiteToReadFrom(dataItem); //Get sites where the dataitem is present
 		if(availableSite == null){ 
@@ -159,12 +199,14 @@ public class TransactionManager {
 		if(t.readonlyTransaction){
 			return availableSite.readOnlyDataItem(dataItem, t.transactionStartTimestamp);
 		}else{
+			//Obtain read-only lock and read data item value
 			if(t.getLock(availableSite,dataItem, lockType.READ_LOCK)){
 				return availableSite.readDataItem(dataItem);
 			}else{
+				//if we are unable to obtain read only lock add transaction to waiting list
 				t.isWaiting=true;
 				transactionWaitingList.add(t);
-				for(Transaction t1:transactionList){
+				for(Transaction t1:transactionList){ //check if transaction should be executed according to wait die protocol
 					if(!t1.transactionName.equalsIgnoreCase(t.transactionName) && t1.lockOnDataItems.contains(dataItem)){
 						if(t1.transactionStartTimestamp < t.transactionStartTimestamp){
 							t.abort("Transaction "+t1.transactionName+" is older than "+t.transactionName);
@@ -183,6 +225,11 @@ public class TransactionManager {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param dataItem
+	 * @return site from which the data item can be read
+	 */
 	private Site getAvailableSiteToReadFrom(String dataItem) {
 		ArrayList<Site> siteList=getSitesContainingAvailableDataitem(dataItem);
 		for(Site site:siteList){
@@ -192,6 +239,12 @@ public class TransactionManager {
 		}
 		return null;
 	}
+	
+	/**
+	 * 
+	 * @param dataItem
+	 * @return list of sites containing the data item available for read 
+	 */
 	private ArrayList<Site> getSitesContainingAvailableDataitem(String dataItem) {
 		ArrayList<Site> sites=new ArrayList<>();
 		for(Site site:SiteManager.siteList){
@@ -202,18 +255,32 @@ public class TransactionManager {
 		}
 		return sites;
 	}
+	
+	/**
+	 * End transaction 
+	 * @param t - transaction to be ended
+	 */
 	private void endTransaction(Transaction t) {
-		if(t.isRunning){
-			if(t.isWaiting){ //Abort Transaction if not all sites have been up since it accessed dataitems
-				t.abort("Transaction "+t.transactionName+" has some unfinished operation");
-				//System.out.println("Aborting transaction "+t.transactionName);
-			}else{
-				t.commit(currentTimeStamp);
-				//System.out.println("Commiting transaction "+t.transactionName);
+		if(t!=null)
+		{
+			if(t.isRunning)
+			{
+				if(t.isWaiting){ //Abort Transaction if not all sites have been up since it accessed dataitems
+					t.abort("Transaction "+t.transactionName+" has some unfinished operation");
+					//System.out.println("Aborting transaction "+t.transactionName);
+				}else{
+					t.commit(currentTimeStamp);
+					//System.out.println("Commiting transaction "+t.transactionName);
+				}
 			}
 		}
 	}
 	
+	/**
+	 * 
+	 * @param dataitem
+	 * @return a list of sites containing a data item
+	 */
 	public ArrayList<Site> getSitesContainingDataitem(String dataitem) {
 		ArrayList<Site> sites=new ArrayList<>();
 		for(Site site:SiteManager.siteList){
@@ -223,25 +290,27 @@ public class TransactionManager {
 		}
 		return sites;
 	}
+	
+	//Execute write to all sites for a data item for an operation in a transaction 
 	private void writeToAllSites(Transaction t, String dataItem, int value,String operation) {
 		/*if(t.lockOnDataItems.contains(dataItem)){
 			for(Site s:SiteManager.siteList){
 				s.writeDataItem(dataItem, value,currentTimeStamp);
 			}
 		}else{*/
-			ArrayList<Site> sites=getSitesContainingDataitem(dataItem);
-			boolean gettingLockSuccessful=t.getLock(dataItem, lockType.WRITE_LOCK);
-			if(gettingLockSuccessful){
+			ArrayList<Site> sites=getSitesContainingDataitem(dataItem);		//Get all sites containing the data item
+			boolean gettingLockSuccessful=t.getLock(dataItem, lockType.WRITE_LOCK);	//obtain lock on data item
+			if(gettingLockSuccessful){		//if a lock is obtained successfully, write on each site
 				t.isWaiting=false;
 				for(Site s:sites){
 					s.writeDataItem(dataItem, value,currentTimeStamp);
 				}
-			}else{
+			}else{	//Else, check for transactions older than this transaction and decide if write has to be executed according to wait-die protocol 
 					for(Transaction t1:transactionList){
 						if(!t1.transactionName.equalsIgnoreCase(t.transactionName) && t1.lockOnDataItems.contains(dataItem)){
 							if(t1.transactionStartTimestamp < t.transactionStartTimestamp){
 								t.abort("Transaction "+t1.transactionName+" is older than "+t.transactionName);
-							}else{
+							}else{	//put transaction in waiting if there is no older transaction holding a lock on the data item
 								//t1.abort("Transaction "+t.transactionName+" is older than "+t1.transactionName);
 								t.isWaiting=true;
 								transactionWaitingList.add(t);
@@ -256,11 +325,16 @@ public class TransactionManager {
 			
 		}
 		
+	/**
+	 * Show data items on a site
+	 * @param siteId
+	 * @throws IOException
+	 */
 	private void dump(int siteId) throws IOException {
 		Site s=SiteManager.siteList.get(siteId-1);
 		bw.write("Site : "+s.id);
 		bw.write("\n");
-		for(String x:s.dataItems.keySet()){
+		for(String x:sortKeys(s.dataItems.keySet())){
 			bw.write(x);
 			bw.write(" - ");
 			Collections.sort(s.dataItems.get(x).valueList);
@@ -269,6 +343,26 @@ public class TransactionManager {
 		}
 		bw.flush();
 	}
+	
+	private ArrayList<String> sortKeys(Set<String> keySet) {
+		ArrayList<Integer> keys=new ArrayList<>();
+		for(String k:keySet){
+			keys.add(Integer.parseInt(k.substring(1)));
+		}
+		Collections.sort(keys);
+		ArrayList<String> sortedKeys=new ArrayList<>();
+		for(Integer p:keys){
+			sortedKeys.add("x"+p);
+		}
+		return sortedKeys;
+	}
+
+
+	/**
+	 * Show value of a data item on all sites 
+	 * @param dataItem
+	 * @throws Exception
+	 */
 	private void dump(String dataItem) throws Exception{
 		for(Site site:SiteManager.siteList){
 			if(site.dataItems.containsKey(dataItem)){
@@ -281,11 +375,18 @@ public class TransactionManager {
 				bw.write("\n");
 			}
 		}
+		bw.flush();
 	}
+	
+	/**
+	 * Show data items on all sites
+	 * @throws IOException
+	 */
 	private void dump() throws IOException {
 		for(Site site:SiteManager.siteList){
 			dump(site.id);
 			bw.write("\n");
 		}
+		bw.flush();
 	}
 }
