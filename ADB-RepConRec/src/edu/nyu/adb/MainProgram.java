@@ -7,7 +7,11 @@ import java.io.OutputStream;
 
 
 public class MainProgram {
-
+	/**
+	 * Entry point of the application
+	 * @param args : command line arguments
+	 * @throws Exception if the initialization fails or transaction manager fails
+	 */
 	public static void main(String[] args) throws Exception{
 		if(args.length > 0){
 			if(args.length == 1){
@@ -40,10 +44,49 @@ public class MainProgram {
 		}
 		try{
 			//Initialize site manager that initializes the sites with appropriate variables and initial values. 
-			SiteManager.init();
+			initSites();
 		}catch(Exception e){
 			//If initialization of site manager fails then throw an appropriate Exception
 			throw new Exception("Initialization of the Site Manager failed");
+		}
+	}
+	
+	/**
+	 * Method initSites() creates 10 sites and initializes their variables and puts the variables in the data items table.
+	 * Even variables are replicated, odd variables are not.
+	 */
+	public static void initSites(){
+		for(int i=1;i<=10;i++){ //Creating 10 new sites
+			Site s=new Site(i); 
+			for(int j=1;j<=20;j++){
+				//Add even data items to all sites
+				if(j%2==0){
+					//Even data items are replicated
+					DataItem dt=new DataItem();
+					Value v=new Value();
+					v.timestamp=0; //Set the initial timestamp
+					v.value=100+j; //Initial value
+					dt.isReplicated=true; //It is replicated
+					dt.availablForRead=true; //Initially all the data items are available for read
+					dt.dataIdentifier="x"+j; //Set the dataidentifier for the data item
+					dt.valueList.add(v); //Add initial value to the list
+					s.dataItems.put(dt.dataIdentifier,dt); //Adding the initial values to the secondary storage
+				}else{
+					//Add odd data items to one site each 
+					if(i==1+(j%10)){ //Odd variables
+						DataItem dt=new DataItem();
+						Value v=new Value();
+						v.timestamp=0; 
+						v.value=100+j;
+						dt.dataIdentifier="x"+j;
+						dt.isReplicated=false;
+						dt.availablForRead=true;
+						dt.valueList.add(v);
+						s.dataItems.put(dt.dataIdentifier,dt);
+					}
+				}
+			}
+			TransactionManager.getInstance().addSite(s); //Add site to the site list so that it is maintained by the transaction manager
 		}
 	}
 }

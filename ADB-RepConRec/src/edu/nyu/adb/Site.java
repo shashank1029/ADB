@@ -1,5 +1,6 @@
 package edu.nyu.adb;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,8 +39,9 @@ public class Site {
 	/**
 	 * Method failSite is used Simulate a site failure.
 	 * @param timestamp : timestamp at which the site failed
+	 * @throws Exception 
 	 */
-	public void failSite(int timestamp){
+	public void failSite(int timestamp) throws Exception{
 		isUp=false; //Set the indicator of whether the site is up to false
 		timestampAtWhichSiteFailed=timestamp; //Set the timestamp at which it failed
 		//If there are any transactions that hold locks on the dataitems in the site then abort that transaction

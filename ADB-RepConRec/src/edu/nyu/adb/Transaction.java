@@ -1,5 +1,7 @@
 package edu.nyu.adb;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import edu.nyu.adb.Lock.lockType;
@@ -11,6 +13,7 @@ public class Transaction {
 	public int transactionStartTimestamp;
 	public boolean isWaiting;
 	public boolean isRunning;
+	public BufferedWriter bw;
 	public ArrayList<String> operationsList;
 	public boolean readonlyTransaction=false;
 	public ArrayList<String> lockOnDataItems;
@@ -21,8 +24,9 @@ public class Transaction {
 	 * Constructor for transaction
 	 * @param name
 	 * @param timestamp
+	 * @param bwTM 
 	 */
-	public Transaction(String name,int timestamp){
+	public Transaction(String name,int timestamp, BufferedWriter bwTM){
 		transactionStartTimestamp=timestamp;
 		transactionName=name;
 		lockOnDataItems=new ArrayList<>();
@@ -30,6 +34,7 @@ public class Transaction {
 		sitesAccessed=new ArrayList<>();
 		isWaiting=false;
 		isRunning=true;
+		bw=bwTM;
 	}
 
 	/**
@@ -82,37 +87,41 @@ public class Transaction {
 	}
 	
 	/**
-	 * Abort a transaction 
+	 * Method abort simulates aborting a transaction and clearing the locks held by that transaction
+	 * Abort a transaction with the reason of why it aborts
 	 * @param whyMessage
+	 * @throws IOException 
 	 */
-	public void abort(String whyMessage){
+	public void abort(String whyMessage) throws IOException{
 		for(String dataItem:lockOnDataItems){
 			ArrayList<Site> sitesAccessed=TransactionManager.getInstance().getSitesContainingDataitem(dataItem);
 			for(Site s: sitesAccessed){
-				s.dataItemsBufferStorage.remove(dataItem);
+				s.dataItemsBufferStorage.remove(dataItem); // If the transaction wrote a value to a site clear the buffer for that dataitem
 			}
 		}
-		releaseLocks();
-		isRunning=false;
-		System.out.println("Aborting transaction "+transactionName+" because "+whyMessage);
+		releaseLocks(); //Release the locks held by the transaction
+		isRunning=false; //Set that the transaction is not running anymore
+		bw.write("Aborting transaction "+transactionName+" because "+whyMessage+"\n");
 	}
 
 	/**
 	 * Release locks on all data items
+	 * When a transaction ends whether it aborts or commits it will release locks on the data items that the transaction holds
 	 */
 	public void releaseLocks() {
-		for(String dataitem:lockOnDataItems){
+		for(String dataitem:lockOnDataItems){ //Loop through all the data items it has locks on
 			for(Site s: sitesAccessed){
-				s.lockTable.remove(dataitem);
+				s.lockTable.remove(dataitem); //Remove the locks from the lock table
 			}
 		}
 	}
 
 	/**
 	 * Commit a transaction
-	 * @param currentTtimestamp
+	 * @param currentTtimestamp : commit timestamp. All the write values in the buffer will be populated at the commit time
+	 * @throws IOException 
 	 */
-	public void commit(int currentTtimestamp) {
+	public void commit(int currentTtimestamp) throws IOException {
 		for(String dataItem:lockOnDataItems){
 			for(Site s: sitesAccessed){
 				if(!s.dataItemsBufferStorage.isEmpty()&& s.dataItems.containsKey(dataItem) && s.dataItemsBufferStorage.containsKey(dataItem)){
@@ -121,7 +130,7 @@ public class Transaction {
 					dItemFromSecStorage.availablForRead=true;
 					Value v=new Value();
 					v.value=s.dataItemsBufferStorage.get(dataItem);
-					v.timestamp=currentTtimestamp;
+					v.timestamp=currentTtimestamp; //Commit timestamp
 					dataItemValueListSS.add(v);
 					s.dataItemsBufferStorage.remove(dataItem);
 				}
@@ -130,6 +139,6 @@ public class Transaction {
 		//release locks after commits
 		releaseLocks();
 		isRunning=false;
-		System.out.println("Commiting transaction "+transactionName);
+		bw.write("Commiting transaction "+transactionName+"\n");
 	}
 }
