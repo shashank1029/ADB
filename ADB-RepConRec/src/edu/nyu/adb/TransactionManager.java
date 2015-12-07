@@ -65,6 +65,7 @@ public class TransactionManager {
 		String line=null;
 		//Read and execute input operations
 		while((line=br.readLine())!=null){
+			line=line.trim();
 			if(!(line.startsWith("\\") || line.isEmpty())){ //Ignore a line that starts with \\ then it is comment or is empty
 				String[] operations=line.split(";");
 				for(int i=0;i< operations.length;i++){
@@ -103,7 +104,7 @@ public class TransactionManager {
 		//Start Read-only transaction
 		if(operation.startsWith("beginRO(")){
 			//Get the name of the transaction
-			String transactionName=operation.substring(operation.indexOf("(")+1, operation.indexOf(")"));	//extract transaction name
+			String transactionName=operation.substring(operation.indexOf("(")+1, operation.indexOf(")")).trim();	//extract transaction name
 			//Create a new transaction
 			Transaction t=new Transaction(transactionName,currentTimeStamp,bw);		
 			t.readonlyTransaction=true; //Set that it is a read only transaction
@@ -113,7 +114,7 @@ public class TransactionManager {
 		}
 		//Start Read-write transaction
 		else if(operation.startsWith("begin(")){ //All read-write operations start with begin keyword
-			String transactionName=operation.substring(operation.indexOf("(")+1, operation.indexOf(")"));
+			String transactionName=operation.substring(operation.indexOf("(")+1, operation.indexOf(")")).trim();
 			Transaction t=new Transaction(transactionName,currentTimeStamp,bw); //Creating a new transaction
 			transactionMap.put(transactionName, t);
 			transactionList.add(t);
@@ -121,10 +122,10 @@ public class TransactionManager {
 		}
 		//Execute Read operation
 		else if(operation.startsWith("R(")){
-			String transactionName=operation.substring(operation.indexOf("(")+1, operation.indexOf(","));
+			String transactionName=operation.substring(operation.indexOf("(")+1, operation.indexOf(",")).trim();
 			Transaction t=transactionMap.get(transactionName); //Get the transaction object belonging to the given transaction in the operation
 			if(t.isRunning){ //Check if the transaction is still running, if it is aborted then there is no point performing any operations basically ignoring the transaction
-				String dataItem=operation.substring(operation.indexOf(",")+1, operation.indexOf(")")); //Get the data item intended to be read
+				String dataItem=operation.substring(operation.indexOf(",")+1, operation.indexOf(")")).trim(); //Get the data item intended to be read
 				t.operationsList.add(operation); //Add the operation to the list maintained by the transaction
 				Integer val=readDataItem(t,dataItem); //Perform the read operation
 				//if data item which is read null; put operation in waiting for transaction
@@ -134,18 +135,18 @@ public class TransactionManager {
 					return false; //Operation was not successfully performed
 				}else
 					//If data item has a value, display read value
-					bw.write("\n"+dataItem +": "+val+"\n"); //Print the output
+					bw.write(dataItem +": "+val+"\n"); //Print the output
 			}
 			bw.flush();
 			return true; //If the control reached this point then the operation was succesful
 		}
 		//Execute write operation 
 		else if(operation.startsWith("W(")){
-			String transactionName=operation.substring(operation.indexOf("(")+1, operation.indexOf(","));
+			String transactionName=operation.substring(operation.indexOf("(")+1, operation.indexOf(",")).trim();
 			Transaction t=transactionMap.get(transactionName); //Get the transaction object
 			if(t.isRunning){ //Check if the operation has not yet aborted
-				String dataItem=operation.substring(operation.indexOf(",")+1, operation.lastIndexOf(","));
-				int value=Integer.parseInt(operation.substring(operation.lastIndexOf(",")+1, operation.indexOf(")"))); //Perform the write operations
+				String dataItem=operation.substring(operation.indexOf(",")+1, operation.lastIndexOf(",")).trim();
+				int value=Integer.parseInt(operation.substring(operation.lastIndexOf(",")+1, operation.indexOf(")")).trim()); //Perform the write operations
 				writeToAllSites(t,dataItem,value,operation);
 				//Check if this should be within t.isrunning condition
 				if(t.isWaiting)
@@ -154,31 +155,31 @@ public class TransactionManager {
 			return true;
 		//Execute Dump data operation
 		}else if(operation.startsWith("dump")){
-			if(operation.equalsIgnoreCase("dump()")){
+			if(operation.contains("dump()")){
 				dump();
 			}else if(operation.startsWith("dump(x")){
-				String dataItem=operation.substring(operation.indexOf("(")+1, operation.indexOf(")"));
+				String dataItem=operation.substring(operation.indexOf("(")+1, operation.indexOf(")")).trim();
 				dump(dataItem);
 			}else {
-				int siteId=Integer.parseInt(operation.substring(operation.indexOf("(")+1, operation.indexOf(")")));
+				int siteId=Integer.parseInt(operation.substring(operation.indexOf("(")+1, operation.indexOf(")")).trim());
 				dump(siteId);
 			}
 			bw.flush();
 			return true;
 		//End a transaction
 		}else if(operation.startsWith("end(")){
-			String transactionName=operation.substring(operation.indexOf("(")+1, operation.indexOf(")"));
+			String transactionName=operation.substring(operation.indexOf("(")+1, operation.indexOf(")")).trim();
 			Transaction t=transactionMap.get(transactionName);
 			endTransaction(t); //Perform the end transaction
 			return true;
 		//Shutdown a site  
 		}else if(operation.startsWith("fail(")){
-			String siteName=operation.substring(operation.indexOf("(")+1, operation.indexOf(")"));
+			String siteName=operation.substring(operation.indexOf("(")+1, operation.indexOf(")")).trim();
 			siteList.get(Integer.parseInt(siteName)-1).failSite(currentTimeStamp);//Perform a fail site operation
 			return true;
 		//Recover a site
 		}else if(operation.startsWith("recover(")){
-			String siteName=operation.substring(operation.indexOf("(")+1, operation.indexOf(")"));
+			String siteName=operation.substring(operation.indexOf("(")+1, operation.indexOf(")")).trim();
 			siteList.get(Integer.parseInt(siteName)-1).recoverSite(currentTimeStamp); //Perform a recovery of site
 			return true;
 		//Omit comments  
@@ -314,9 +315,16 @@ public class TransactionManager {
 			boolean gettingLockSuccessful=t.getLock(dataItem, lockType.WRITE_LOCK);	//obtain lock on data item
 			if(gettingLockSuccessful){		//if a lock is obtained successfully, write on each site
 				ArrayList<Site> sites=getSitesContainingDataitem(dataItem);		//Get all sites containing the data item
-				t.isWaiting=false; //If getting lock was successful then the transaction need not wait
-				for(Site s:sites){ 
-					s.writeDataItem(dataItem, value,currentTimeStamp); //Write on all sites (written first to buffer and then to secondary storage at commit time)
+				if(sites.isEmpty()){ //No sites are up to get a lock
+					t.isWaiting=true; 
+					transactionWaitingList.add(t);  //Add transactions to the waiting list
+					t.operationWaiting=operation; //After the transaction is set to waiting it cannot accept anymore operations so just set the filed operation waiting to the operation 
+					anyTransactionsWaiting=true; //Indicate that the transactions are waiting
+				}else{
+					t.isWaiting=false; //If getting lock was successful then the transaction need not wait
+					for(Site s:sites){ 
+						s.writeDataItem(dataItem, value,currentTimeStamp); //Write on all sites (written first to buffer and then to secondary storage at commit time)
+					}
 				}
 			}else{ //If getting locks on the data item was unsuccessful then check for transactions holding locks on that data item	
 				//Else, check for transactions older than this transaction and decide if abort has to be executed according to wait-die protocol 
