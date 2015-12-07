@@ -65,7 +65,7 @@ public class MainProgram {
 					DataItem dt=new DataItem();
 					Value v=new Value();
 					v.timestamp=0; //Set the initial timestamp
-					v.value=100+j; //Initial value
+					v.value=10*j; //Initial value
 					dt.isReplicated=true; //It is replicated
 					dt.availablForRead=true; //Initially all the data items are available for read
 					dt.dataIdentifier="x"+j; //Set the dataidentifier for the data item
@@ -77,7 +77,7 @@ public class MainProgram {
 						DataItem dt=new DataItem();
 						Value v=new Value();
 						v.timestamp=0; 
-						v.value=100+j;
+						v.value=10*j;
 						dt.dataIdentifier="x"+j;
 						dt.isReplicated=false;
 						dt.availablForRead=true;
