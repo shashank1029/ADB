@@ -1,0 +1,7 @@
+//T1 waits for Site to recover, and then commits
+fail(2)
+begin(T1)
+W(T1,x1,2)
+recover(2)
+end(T1)
+dump(x1)
