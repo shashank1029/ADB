@@ -102,6 +102,7 @@ public class Transaction {
 		releaseLocks(); //Release the locks held by the transaction
 		isRunning=false; //Set that the transaction is not running anymore
 		bw.write("Aborting transaction "+transactionName+" because "+whyMessage+"\n");
+		bw.flush();
 	}
 
 	/**
@@ -140,5 +141,6 @@ public class Transaction {
 		releaseLocks();
 		isRunning=false;
 		bw.write("Commiting transaction "+transactionName+"\n");
+		bw.flush();
 	}
 }

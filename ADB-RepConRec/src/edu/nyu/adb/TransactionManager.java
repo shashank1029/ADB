@@ -290,7 +290,7 @@ public class TransactionManager {
 	public ArrayList<Site> getSitesContainingDataitem(String dataitem) {
 		ArrayList<Site> sites=new ArrayList<>();
 		for(Site site:siteList){
-			if(site.dataItems.containsKey(dataitem)){
+			if(site.dataItems.containsKey(dataitem) && site.isUp){
 				sites.add(site);
 			}
 		}
@@ -311,9 +311,9 @@ public class TransactionManager {
 				s.writeDataItem(dataItem, value,currentTimeStamp);
 			}
 		}else{*/
-			ArrayList<Site> sites=getSitesContainingDataitem(dataItem);		//Get all sites containing the data item
 			boolean gettingLockSuccessful=t.getLock(dataItem, lockType.WRITE_LOCK);	//obtain lock on data item
 			if(gettingLockSuccessful){		//if a lock is obtained successfully, write on each site
+				ArrayList<Site> sites=getSitesContainingDataitem(dataItem);		//Get all sites containing the data item
 				t.isWaiting=false; //If getting lock was successful then the transaction need not wait
 				for(Site s:sites){ 
 					s.writeDataItem(dataItem, value,currentTimeStamp); //Write on all sites (written first to buffer and then to secondary storage at commit time)
@@ -324,7 +324,7 @@ public class TransactionManager {
 						if(!t1.transactionName.equalsIgnoreCase(t.transactionName) && t1.lockOnDataItems.contains(dataItem)){
 							//If the transaction in transaction list having lock on the data item is older than the transaction trying to wrtie then abort the transaction
 							if(t1.transactionStartTimestamp < t.transactionStartTimestamp){ 
-								t.abort("Transaction "+t1.transactionName+" is older than "+t.transactionName);
+								t.abort("because of wait-die. Transaction "+t1.transactionName+" is older than "+t.transactionName);
 							}else{	//put transaction in waiting if there is no older transaction holding a lock on the data item
 								//t1.abort("Transaction "+t.transactionName+" is older than "+t1.transactionName);
 								t.isWaiting=true; //Transaction needs to wait as it is older than the transaction holding the lock on the data item
@@ -351,7 +351,7 @@ public class TransactionManager {
 		bw.write("\n");
 		for(String x:sortKeys(s.dataItems.keySet())){
 			bw.write(x);
-			bw.write(" - ");
+			bw.write(" : ");
 			Collections.sort(s.dataItems.get(x).valueList);
 			bw.write(s.dataItems.get(x).valueList.get(0).toString());
 			bw.write("\n");
@@ -389,7 +389,7 @@ public class TransactionManager {
 				bw.write("Site :"+site.id);
 				bw.write("\n");
 				bw.write(dataItem);
-				bw.write(" - ");
+				bw.write(" : ");
 				Collections.sort(site.dataItems.get(dataItem).valueList);
 				bw.write(site.dataItems.get(dataItem).valueList.get(0).toString());
 				bw.write("\n");
