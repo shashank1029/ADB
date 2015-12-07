@@ -272,7 +272,7 @@ public class TransactionManager {
 			if(t.isRunning)
 			{
 				if(t.isWaiting){ //Abort Transaction if not all sites have been up since it accessed dataitems
-					t.abort("Aborting transaction");
+					t.abort("Operations still waiting");
 					//System.out.println("Aborting transaction "+t.transactionName);
 				}else{
 					t.commit(currentTimeStamp);

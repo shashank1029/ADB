@@ -45,12 +45,18 @@ public class Site {
 		isUp=false; //Set the indicator of whether the site is up to false
 		timestampAtWhichSiteFailed=timestamp; //Set the timestamp at which it failed
 		//If there are any transactions that hold locks on the dataitems in the site then abort that transaction
+		ArrayList<Transaction> abortTransactionList=new ArrayList<>();
 		for(String di:lockTable.keySet()){ //Looping through all the transactions
 			for(lockType lt:lockTable.get(di).keySet()){
 				for(Transaction t:lockTable.get(di).get(lt)){
-					t.abort("Site "+this.id+" failed.");	//Abort transactions due to site failure
+					if(t.isRunning){
+						abortTransactionList.add(t); //Aborting transactions here was causing ConcurrentModifiedException due to release of locks
+					}
 				}
 			}
+		}
+		for(Transaction t2:abortTransactionList){
+			t2.abort("Site "+this.id+" failed.");	//Abort transactions due to site failure
 		}
 		lockTable.clear(); //Clearing the lock tables in the event of a failure
 	}
